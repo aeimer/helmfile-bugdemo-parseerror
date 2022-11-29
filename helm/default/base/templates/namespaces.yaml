@@ -1,0 +1,5 @@
+{{- range $key, $environment := .Values.projectEnvironments }}
+{{- range $name, $value := $.Values.projectNamespaces }}
+{{- include "base.namespace" (dict "name" (printf "%s-%s" $name $environment) "value" $value "environment" $environment) }}
+{{- end }}
+{{- end }}

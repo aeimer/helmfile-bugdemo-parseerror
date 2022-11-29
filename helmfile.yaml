@@ -1,0 +1,43 @@
+{{ $isSandbox := (eq .Environment.Name "sandbox") }}
+
+environments:
+  # Default is used if no --environment flag is set
+  # The order of the projectEnvs matters
+  default: ~
+  sandbox:
+    values:
+      - projectEnvironments:
+          - main
+
+templates:
+  # Loads value files by namespace/release/env from ./values/
+  # Can be used to inject full values block => '<<: *values'
+  # or insert only the value array-item => '- *value'
+  values: &values
+    values:
+      - &valueDefault ./values/{{`{{ .Release.Namespace }}`}}/{{`{{ .Release.Name }}`}}/default.yaml
+      - &valueEnv ./values/{{`{{ .Release.Namespace }}`}}/{{`{{ .Release.Name }}`}}/{{`{{ .Environment.Name }}`}}.yaml
+
+  # Loads local chart files from ./charts/ by namespace/release
+  localChart: &localChart
+    chart: ./helm/{{`{{ .Release.Namespace }}`}}/{{`{{ .Release.Name }}`}}
+
+  # Adds default label by namespace for better helmfile usage, eg.: helmfile sync --selector namespace!=cert-manager
+  namespaceLabel: &labels
+    labels:
+      namespace: "{{`{{ .Release.Namespace }}`}}"
+
+releases:
+- name: base2
+  namespace: default
+  <<: *localChart
+  values:
+    - *valueDefault
+    - *valueEnv
+    - projectEnvironments:
+        {{- range .Values.projectEnvironments }}
+        - {{ . }}
+        {{- end }}
+    - base_chart_values.yaml
+  <<: *labels
+  wait: true
