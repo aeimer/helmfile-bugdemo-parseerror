@@ -30,7 +30,6 @@ templates:
 releases:
 - name: base2
   namespace: default
-  <<: *localChart
   values:
     - *valueDefault
     - *valueEnv
@@ -39,5 +38,5 @@ releases:
         - {{ . }}
         {{- end }}
     - base_chart_values.yaml
-  <<: *labels
+  <<: [*labels, *localChart]
   wait: true
